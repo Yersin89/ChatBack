@@ -18,4 +18,13 @@ public class Message {
     private String senderName;
     private String text;
     private String timestamp;
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "chatId='" + chatId + '\'' +
+                ", senderName='" + senderName + '\'' +
+                ", text='" + text + '\'' +
+                '}';
+    }
 }

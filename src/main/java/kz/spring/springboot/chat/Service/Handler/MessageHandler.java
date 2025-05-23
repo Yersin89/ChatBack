@@ -33,7 +33,7 @@ public class MessageHandler {
         try {
             validateIncomingMessage(incomingMessage);
 
-            String senderName = incomingMessage.getName();
+            String senderName = incomingMessage.getSenderName();
             String chatId = incomingMessage.getChatId();
             String content = incomingMessage.getMessage();
 
@@ -60,7 +60,7 @@ public class MessageHandler {
     }
 
     private void validateIncomingMessage(IncomingMessage message) {
-        if (message.getName() == null || message.getName().isEmpty()
+        if (message.getSenderName() == null || message.getSenderName().isEmpty()
                 || message.getMessage() == null || message.getMessage().isEmpty()
                 || message.getChatId() == null || message.getChatId().isEmpty()) {
             throw new IllegalArgumentException("Недостаточно параметров для отправки сообщения");

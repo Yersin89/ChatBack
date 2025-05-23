@@ -3,6 +3,8 @@ package kz.spring.springboot.chat.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.spring.springboot.chat.Dto.IncomingMessage;
+import kz.spring.springboot.chat.Entity.Message;
+import kz.spring.springboot.chat.Mapper.MessageMapper;
 import kz.spring.springboot.chat.Service.Handler.CommandHandler;
 import kz.spring.springboot.chat.Service.Handler.MessageHandler;
 import org.springframework.stereotype.Service;
@@ -17,13 +19,19 @@ public class WebSocketMessageService {
     private final ObjectMapper objectMapper;
     private final CommandHandler commandHandler;
     private final MessageHandler messageHandler;
+    private final KafkaMessageProducer kafkaProducer;
+    private final MessageMapper messageMapper;
 
     public WebSocketMessageService(ObjectMapper objectMapper,
                                    CommandHandler commandHandler,
-                                   MessageHandler messageHandler) {
+                                   MessageHandler messageHandler,
+                                   KafkaMessageProducer kafkaProducer,
+                                   MessageMapper messageMapper) {
         this.objectMapper = objectMapper;
         this.commandHandler = commandHandler;
         this.messageHandler = messageHandler;
+        this.kafkaProducer = kafkaProducer;
+        this.messageMapper = messageMapper;
     }
 
     public void handleMessage(WebSocketSession session, String payload) throws IOException {
@@ -41,6 +49,12 @@ public class WebSocketMessageService {
             try {
                 IncomingMessage incomingMessage = objectMapper.treeToValue(jsonNode, IncomingMessage.class);
                 handled = messageHandler.handle(session, incomingMessage);
+
+                if (handled) {
+                    Message message = messageMapper.toMessage(incomingMessage);
+                    kafkaProducer.sendMessage("chat-messages", message);
+                }
+
             } catch (Exception e) {
                 System.err.println("Ошибка при десериализации IncomingMessage: " + e.getMessage());
                 sendError(session, "Неверный формат сообщения");
@@ -52,6 +66,7 @@ public class WebSocketMessageService {
             sendError(session, "Неверный формат сообщения");
         }
     }
+
 
     private void sendError(WebSocketSession session, String errorMessage) throws IOException {
         if (session != null && session.isOpen()) {
