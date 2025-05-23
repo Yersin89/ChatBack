@@ -1,29 +1,30 @@
 package kz.spring.springboot.chat.Service;
 
 
-import kz.spring.springboot.chat.Entity.Users;
+import kz.spring.springboot.chat.Entity.User;
 
 import java.util.List;
 import java.util.Optional;
 
+
 public interface UserService {
-    Users registerIfNotExists(String name);
+    User registerIfNotExists(String name);
 
-    Users createUser(Users user);
+    User createUser(User user);
 
-    Optional<Users> getUserById(String id);
+    Optional<User> getUserById(String id);
 
-    List<Users> getAllUsers();
+    List<User> getAllUsers();
 
-    Users updateUser(String id, Users updatedUser);
+    User updateUser(String id, User updatedUser);
 
     void deleteUser(String id);
 
-    public String getUsernameById(String userId);
+    String getUsernameById(String userId);
 
-    public String getUserIdByUsername(String username);
+    String getUserIdByUsername(String username);
 
     void setUserOnlineStatus(String name, boolean status);
 
-    public List<Users> searchUsersByName(String name);
+    List<User> searchUsersByName(String name);
 }

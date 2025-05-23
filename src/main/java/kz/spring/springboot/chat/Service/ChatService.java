@@ -11,12 +11,10 @@ public interface ChatService {
 
     Chat createChat(String name, List<String> participantIds);
 
-    Chat getChatByName(String name);
 
     List<ChatDTO> getChatsForUser(String userId);
     public void deleteUser(String id);
 
-    void sendMessageToChat(String chatId, String senderId, String messageText);
 
     public Chat addUsersToChat(String chatId, List<String> participantIds);
 

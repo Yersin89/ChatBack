@@ -26,27 +26,15 @@ public class MessageController {
                 request.getSenderName(),
                 request.getText()
         );
-
-        return ResponseEntity.ok(new MessageResponseDto(
-                message.getSenderId(),
-                message.getSenderName(),
-                message.getText(),
-                message.getTimestamp()
-        ));
+        return ResponseEntity.ok(MessageResponseDto.fromMessage(message));
     }
 
     @GetMapping("/chat/{chatId}")
     public ResponseEntity<List<MessageResponseDto>> getMessages(@PathVariable String chatId) {
         List<MessageResponseDto> messages = messageService.getMessagesByChatId(chatId)
                 .stream()
-                .map(msg -> new MessageResponseDto(
-                        msg.getSenderId(),
-                        msg.getSenderName(),
-                        msg.getText(),
-                        msg.getTimestamp()
-                ))
+                .map(MessageResponseDto::fromMessage)
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(messages);
     }
 }

@@ -8,10 +8,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 
-@Document(collection = "products")
-public class Users {
+@Document(collection = "users")
+public class User {
     @Id
     private String id;
     private String name;

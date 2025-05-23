@@ -1,6 +1,7 @@
 package kz.spring.springboot.chat.Service.Impl;
 
-import kz.spring.springboot.chat.Entity.Users;
+import kz.spring.springboot.chat.Entity.User;
+import kz.spring.springboot.chat.Exception.UserNotFoundException;
 import kz.spring.springboot.chat.Repository.UsersRepository;
 import kz.spring.springboot.chat.Service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,56 +19,51 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Users registerIfNotExists(String name) {
+    public User registerIfNotExists(String name) {
         return usersRepository.findByName(name)
-                .orElseGet(() -> {
-                    Users user = Users.builder()
-                            .name(name)
-                            .build();
-                    return usersRepository.save(user);
-                });
+                .orElseGet(() -> createAndSaveUser(name));
+    }
+    private User createAndSaveUser(String name) {
+        return usersRepository.save(User.builder().name(name).build());
     }
 
-
     @Override
-    public Users createUser(Users user) {
+    public User createUser(User user) {
         return usersRepository.save(user);
     }
 
     @Override
-    public Optional<Users> getUserById(String id) {
+    public Optional<User> getUserById(String id) {
         return usersRepository.findById(id);
     }
 
     @Override
-    public List<Users> getAllUsers() {
+    public List<User> getAllUsers() {
         return usersRepository.findAll();
     }
 
     @Override
-    public Users updateUser(String id, Users updatedUser) {
-        return usersRepository.findById(id)
-                .map(user -> {
-                    user.setName(updatedUser.getName());
-                    return usersRepository.save(user);
-                })
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+    public User updateUser(String id, User updatedUser) {
+        return usersRepository.save(
+                getUserOrThrow(id).toBuilder()
+                        .name(updatedUser.getName())
+                        .build()
+        );
     }
 
-    @Override
-    public void deleteUser(String id) {
-        usersRepository.deleteById(id);
+    public String getUsernameById(String id) {
+        return getUserOrThrow(id).getName();
     }
-    public String getUsernameById(String userId) {
-        return usersRepository.findById(userId)
-                .map(Users::getName)
-                .orElse(null);
+
+    private User getUserOrThrow(String id) {
+        return usersRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
     }
 
     public String getUserIdByUsername(String username) {
         return usersRepository.findByName(username)
-                .map(Users::getId)
-                .orElse(null);
+                .map(User::getId)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
     }
 
     @Override
@@ -78,7 +74,17 @@ public class UserServiceImpl implements UserService {
         });
     }
 
-    public List<Users> searchUsersByName(String name) {
+
+    public List<User> searchUsersByName(String name) {
+
         return usersRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    @Override
+    public void deleteUser(String id) {
+        if (!usersRepository.existsById(id)) {
+            throw new UserNotFoundException("Пользователь не найден");
+        }
+        usersRepository.deleteById(id);
     }
 }

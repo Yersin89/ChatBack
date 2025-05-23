@@ -1,14 +1,16 @@
 package kz.spring.springboot.chat.Controller;
 
 import kz.spring.springboot.chat.Dto.UserDto;
-import lombok.RequiredArgsConstructor;
-import kz.spring.springboot.chat.Entity.Users;
+import kz.spring.springboot.chat.Entity.User;
+import kz.spring.springboot.chat.Exception.UserNotFoundException;
+import kz.spring.springboot.chat.Mapper.UserMapper;
 import kz.spring.springboot.chat.Service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -16,45 +18,40 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @PostMapping("/login")
     public ResponseEntity<UserDto> registerUser(@RequestBody Map<String, String> request) {
         String name = request.get("name");
-
         if (name == null || name.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-
-        Users user = userService.registerIfNotExists(name.trim());
-
-        UserDto dto = new UserDto(user.getId(), user.getName(), user.getOnline());
-        return ResponseEntity.ok(dto);
+        User user = userService.registerIfNotExists(name.trim());
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
 
     @PostMapping
-    public ResponseEntity<Users> createUser(@RequestBody Users user) {
-        return ResponseEntity.ok(userService.createUser(user));
+    public ResponseEntity<UserDto> createUser(@RequestBody User user) {
+        User createdUser = userService.createUser(user);
+        return ResponseEntity.ok(userMapper.toDto(createdUser));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Users> getUserById(@PathVariable String id) {
-        return userService.getUserById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<UserDto> getUserById(@PathVariable String id) {
+        User user = userService.getUserById(id)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
 
     @GetMapping
-    public ResponseEntity<List<Users>> getAllUsers() {
+    public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Users> updateUser(@PathVariable String id, @RequestBody Users user) {
-        try {
-            return ResponseEntity.ok(userService.updateUser(id, user));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<UserDto> updateUser(@PathVariable String id, @RequestBody User user) {
+        User updatedUser = userService.updateUser(id, user);
+        return ResponseEntity.ok(userMapper.toDto(updatedUser));
     }
 
     @DeleteMapping("/{id}")
@@ -65,13 +62,6 @@ public class UserController {
 
     @GetMapping("/search")
     public ResponseEntity<List<UserDto>> searchUsersByName(@RequestParam String name) {
-        List<Users> users = userService.searchUsersByName(name);
-        List<UserDto> result = users.stream()
-                .map(user -> new UserDto(user.getId(), user.getName(), user.getOnline()))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(userMapper.toDtoList(userService.searchUsersByName(name)));
     }
-
 }
-
-

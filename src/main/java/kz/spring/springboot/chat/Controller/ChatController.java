@@ -3,15 +3,14 @@ package kz.spring.springboot.chat.Controller;
 import kz.spring.springboot.chat.Dto.AddUsersRequest;
 import kz.spring.springboot.chat.Dto.ChatDTO;
 import kz.spring.springboot.chat.Dto.ChatRequestDto;
+import kz.spring.springboot.chat.Dto.RemoveUserRequest;
 import kz.spring.springboot.chat.Entity.Chat;
 import kz.spring.springboot.chat.Service.ChatService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/chats")
@@ -22,56 +21,45 @@ public class ChatController {
 
     @GetMapping("/all")
     public ResponseEntity<List<Chat>> getAllChats() {
-        List<Chat> chats = chatService.getAllChats();
-        return ResponseEntity.ok(chats);
+        return ResponseEntity.ok(chatService.getAllChats());
     }
 
     @PostMapping("/create")
     public ResponseEntity<Chat> createChat(@RequestBody ChatRequestDto chatRequest) {
-        List<String> participantIds = chatRequest.getParticipantIds();
-        String name = chatRequest.getName();
-
-        Chat chat = chatService.createChat(name, participantIds);
+        Chat chat = chatService.createChat(chatRequest.getName(), chatRequest.getParticipantIds());
         return ResponseEntity.ok(chat);
     }
+
     @DeleteMapping("/user/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+    public ResponseEntity<Void> deleteChatByUserId(@PathVariable String id) {
         chatService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/user/{userId}")
-    public List<ChatDTO> getChatsForUser(@PathVariable String userId) {
-        return chatService.getChatsForUser(userId);
+    public ResponseEntity<List<ChatDTO>> getChatsForUser(@PathVariable String userId) {
+        return ResponseEntity.ok(chatService.getChatsForUser(userId));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteChat(@PathVariable String id) {
-        try {
-            chatService.deleteChat(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        chatService.deleteChat(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{chatId}/addUsers")
-    public ResponseEntity<Chat> addUsersToChat(@PathVariable String chatId, @RequestBody AddUsersRequest request) {
-        try {
-            Chat updatedChat = chatService.addUsersToChat(chatId, request.getParticipantIds());
-            return ResponseEntity.ok(updatedChat);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    public ResponseEntity<Chat> addUsersToChat(
+            @PathVariable String chatId,
+            @RequestBody AddUsersRequest request) {
+        Chat updatedChat = chatService.addUsersToChat(chatId, request.getParticipantIds());
+        return ResponseEntity.ok(updatedChat);
     }
 
     @PutMapping("/{chatId}/removeUser")
     public ResponseEntity<Chat> removeUserFromChat(
             @PathVariable String chatId,
-            @RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
-        Chat updatedChat = chatService.removeUserFromChat(chatId, userId);
+            @RequestBody RemoveUserRequest request) {
+        Chat updatedChat = chatService.removeUserFromChat(chatId, request.getUserId());
         return ResponseEntity.ok(updatedChat);
     }
-
 }

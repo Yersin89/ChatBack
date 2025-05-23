@@ -11,7 +11,6 @@ import java.util.Optional;
 @Repository
 public interface ChatRepository extends MongoRepository<Chat, String> {
 
-    Optional<Chat> findByName(String name);
 
     List<Chat> findByParticipantIdsContains(String userId);
 

@@ -8,7 +8,7 @@ public class UserDto {
     private String name;
     private Boolean online;
 
-    public UserDto(String id, String name, Boolean online) {
+    public UserDto(String id, String name) {
         this.id = id;
         this.name = name;
     }
